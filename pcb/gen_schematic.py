@@ -7,7 +7,7 @@ connectivity is exactly the table below. Requires the stock KiCad symbol librari
 import os
 import uuid
 
-from sexpr import Q, dump, find, load_symbol, parse, pins
+from sexpr import Q, dump, find, load_symbol, parse, pin_units, pins
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT = "willie_tracker"
@@ -85,8 +85,8 @@ def two(a, b):
 
 
 RAK_NETS = {
-    1: "VBUS", 2: "USB_DM", 3: "USB_DP", 4: "I2C_SDA", 5: "I2C_SCL", 6: "GNSS_TXD", 7: "GNSS_RXD",
-    8: "GNSS_PPS", 14: "GND", 16: "GND", 17: "RESET", 18: "SWDCLK", 19: "SWDIO", 20: "+3V3", 21: "+3V3",
+    1: "VBUS", 2: "USB_DM", 3: "USB_DP", 4: "I2C_SDA", 5: "I2C_SCL", 6: "HOST_RX", 7: "HOST_TX",
+    8: "HOST_PPS", 14: "GND", 16: "GND", 17: "RESET", 18: "SWDCLK", 19: "SWDIO", 20: "+3V3", 21: "+3V3",
     22: "GND", 25: "ACC_INT1", 26: "GNSS_EN", 27: "LED_GREEN", 35: "GND", 36: "GND", 38: "GND",
     40: "VBAT_SENSE", 42: "GND", 43: "+3V3", 44: "+3V3",
 }
@@ -94,77 +94,94 @@ RAK_NETS = {
 # (ref, lib, symbol, value, footprint or None for library default, x, y, {pin: net})
 PARTS = [
     # --- USB-C, ESD, charger, battery
-    ("J1", "Connector", "USB_C_Receptacle_USB2.0_16P", "USB-C", "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12", 40.64, 68.58,
+    ("J1", "Connector", "USB_C_Receptacle_USB2.0_16P", "USB-C", "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12", (40.64, 68.58),
      {"A4": "VBUS", "A9": "VBUS", "B4": "VBUS", "B9": "VBUS", "A5": "CC1", "B5": "CC2", "A6": "USB_DP", "B6": "USB_DP",
       "A7": "USB_DM", "B7": "USB_DM", "A8": NC, "B8": NC, "A1": "GND", "A12": "GND", "B1": "GND", "B12": "GND", "S1": "GND"}),
-    ("R1", "Device", "R", "5.1k", FP_R, 76.2, 60.96, two("CC1", "GND")),
-    ("R2", "Device", "R", "5.1k", FP_R, 88.9, 60.96, two("CC2", "GND")),
-    ("U5", "Power_Protection", "USBLC6-2SC6", "USBLC6-2SC6", None, 83.82, 86.36,
+    ("R1", "Device", "R", "5.1k", FP_R, (76.2, 60.96), two("CC1", "GND")),
+    ("R2", "Device", "R", "5.1k", FP_R, (88.9, 60.96), two("CC2", "GND")),
+    ("U5", "Power_Protection", "USBLC6-2SC6", "USBLC6-2SC6", None, (83.82, 86.36),
      {"1": "USB_DP", "6": "USB_DP", "3": "USB_DM", "4": "USB_DM", "5": "VBUS", "2": "GND"}),
-    ("U2", "Battery_Management", "MCP73831-2-OT", "MCP73831T-2ACI/OT", None, 127.0, 60.96,
+    ("U2", "Battery_Management", "MCP73831-2-OT", "MCP73831T-2ACI/OT", None, (127.0, 60.96),
      {"4": "VBUS", "2": "GND", "3": "+BATT", "5": "CHG_PROG", "1": "CHG_STAT"}),
-    ("C1", "Device", "C", "4.7uF", FP_C6, 106.68, 60.96, two("VBUS", "GND")),
-    ("R3", "Device", "R", "13k", FP_R, 106.68, 83.82, two("CHG_PROG", "GND")),
-    ("C2", "Device", "C", "4.7uF", FP_C6, 152.4, 60.96, two("+BATT", "GND")),
-    ("R4", "Device", "R", "1k", FP_R, 121.92, 86.36, two("VBUS", "CHG_LED")),
-    ("D1", "Device", "LED", "CHG amber", "LED_SMD:LED_0402_1005Metric", 139.7, 86.36, {"2": "CHG_LED", "1": "CHG_STAT"}),
-    ("J2", "Connector_Generic", "Conn_01x02", "LiPo 3.7V", "Connector_Wire:SolderWire-0.15sqmm_1x02_P4mm_D0.5mm_OD1.5mm", 172.72, 60.96,
+    ("C1", "Device", "C", "4.7uF", FP_C6, (106.68, 60.96), two("VBUS", "GND")),
+    ("R3", "Device", "R", "13k", FP_R, (106.68, 83.82), two("CHG_PROG", "GND")),
+    ("C2", "Device", "C", "4.7uF", FP_C6, (152.4, 60.96), two("+BATT", "GND")),
+    ("R4", "Device", "R", "1k", FP_R, (121.92, 86.36), two("VBUS", "CHG_LED")),
+    ("D1", "Device", "LED", "CHG amber", "LED_SMD:LED_0402_1005Metric", (139.7, 86.36), {"2": "CHG_LED", "1": "CHG_STAT"}),
+    ("J2", "Connector_Generic", "Conn_01x02", "LiPo 3.7V", "Connector_Wire:SolderWire-0.15sqmm_1x02_P4mm_D0.5mm_OD1.5mm", (172.72, 60.96),
      {"1": "+BATT", "2": "GND"}),
     # --- 3.3 V regulator and battery sense
-    ("U3", "Regulator_Linear", "XC6220B331MR", "XC6220B331MR", None, 215.9, 60.96,
-     {"1": "+BATT", "3": "+BATT", "2": "GND", "5": "+3V3", "4": NC}),
-    ("C3", "Device", "C", "1uF", FP_C, 193.04, 68.58, two("+BATT", "GND")),
-    ("C4", "Device", "C", "1uF", FP_C, 238.76, 68.58, two("+3V3", "GND")),
-    ("R5", "Device", "R", "1M", FP_R, 261.62, 58.42, two("+BATT", "VBAT_SENSE")),
-    ("R6", "Device", "R", "1.5M", FP_R, 261.62, 81.28, two("VBAT_SENSE", "GND")),
-    ("C5", "Device", "C", "100nF", FP_C, 276.86, 81.28, two("VBAT_SENSE", "GND")),
+    ("U3", "Regulator_Linear", "XC6220B331MR", "XC6220B331MR", None, (215.9, 60.96),
+     {"1": "VSYS", "3": "VSYS", "2": "GND", "5": "+3V3", "4": NC}),
+    ("C3", "Device", "C", "10uF", FP_C6, (193.04, 68.58), two("VSYS", "GND")),
+    ("C4", "Device", "C", "4.7uF", FP_C6, (238.76, 68.58), two("+3V3", "GND")),
+    # --- USB load sharing (Microchip AN1149): USB feeds the system through D3 and Q1 disconnects the battery
+    ("Q1", "Device", "Q_PMOS_GSD", "DMG2305UX", "Package_TO_SOT_SMD:SOT-23", (350.52, 106.68),
+     {"1": "VBUS", "2": "VSYS", "3": "+BATT"}),
+    ("D3", "Device", "D_Schottky", "PMEG2005EJ", "Diode_SMD:D_SOD-323", (325.12, 106.68), {"2": "VBUS", "1": "VSYS"}),
+    ("R13", "Device", "R", "100k", FP_R, (302.26, 106.68), two("VBUS", "GND")),
+    ("#FLG03", "power", "PWR_FLAG", "PWR_FLAG", "", (370.84, 60.96), {"1": "VSYS"}),
+    ("R5", "Device", "R", "1M", FP_R, (261.62, 58.42), two("+BATT", "VBAT_SENSE")),
+    ("R6", "Device", "R", "1.5M", FP_R, (261.62, 81.28), two("VBAT_SENSE", "GND")),
+    ("C5", "Device", "C", "100nF", FP_C, (276.86, 81.28), two("VBAT_SENSE", "GND")),
     # --- MCU + LoRa module
-    ("U1", os.path.join(HERE, "willie.kicad_sym"), "RAK4630", "RAK4630-9-SM-I", "willie:RAK4630", 88.9, 175.26,
+    ("U1", os.path.join(HERE, "willie.kicad_sym"), "RAK4630", "RAK4630-9-SM-I", "willie:RAK4630", (88.9, 175.26),
      {str(n): RAK_NETS.get(n, NC) for n, _, _ in RAK_PINS}),
-    ("C6", "Device", "C", "10uF", FP_C6, 30.48, 152.4, two("+3V3", "GND")),
-    ("C7", "Device", "C", "100nF", FP_C, 43.18, 152.4, two("+3V3", "GND")),
-    ("C8", "Device", "C", "100nF", FP_C, 30.48, 175.26, two("+3V3", "GND")),
-    ("SW1", "Switch", "SW_Push", "RESET", "Button_Switch_SMD:SW_SPST_B3U-1000P", 35.56, 198.12, {"1": "RESET", "2": "GND"}),
-    ("R10", "Device", "R", "1k", FP_R, 142.24, 152.4, two("LED_GREEN", "LED_G_A")),
-    ("D2", "Device", "LED", "green", "LED_SMD:LED_0402_1005Metric", 154.94, 170.18, {"2": "LED_G_A", "1": "GND"}),
-    ("R8", "Device", "R", "4.7k", FP_R, 142.24, 190.5, two("+3V3", "I2C_SDA")),
-    ("R9", "Device", "R", "4.7k", FP_R, 154.94, 190.5, two("+3V3", "I2C_SCL")),
-    ("TP1", "Connector", "TestPoint", "SWDIO", "TestPoint:TestPoint_Pad_D1.0mm", 30.48, 220.98, {"1": "SWDIO"}),
-    ("TP2", "Connector", "TestPoint", "SWDCLK", "TestPoint:TestPoint_Pad_D1.0mm", 43.18, 220.98, {"1": "SWDCLK"}),
-    ("TP3", "Connector", "TestPoint", "RESET", "TestPoint:TestPoint_Pad_D1.0mm", 55.88, 220.98, {"1": "RESET"}),
-    ("TP4", "Connector", "TestPoint", "3V3", "TestPoint:TestPoint_Pad_D1.0mm", 68.58, 220.98, {"1": "+3V3"}),
-    ("TP5", "Connector", "TestPoint", "GND", "TestPoint:TestPoint_Pad_D1.0mm", 81.28, 220.98, {"1": "GND"}),
+    ("C6", "Device", "C", "10uF", FP_C6, (30.48, 152.4), two("+3V3", "GND")),
+    ("C7", "Device", "C", "100nF", FP_C, (43.18, 152.4), two("+3V3", "GND")),
+    ("C8", "Device", "C", "100nF", FP_C, (30.48, 175.26), two("+3V3", "GND")),
+    ("SW1", "Switch", "SW_Push", "RESET", "Button_Switch_SMD:SW_SPST_B3U-1000P", (35.56, 198.12), {"1": "RESET", "2": "GND"}),
+    ("R10", "Device", "R", "1k", FP_R, (142.24, 152.4), two("LED_GREEN", "LED_G_A")),
+    ("D2", "Device", "LED", "green", "LED_SMD:LED_0402_1005Metric", (154.94, 170.18), {"2": "LED_G_A", "1": "GND"}),
+    ("R8", "Device", "R", "4.7k", FP_R, (142.24, 190.5), two("+3V3", "I2C_SDA")),
+    ("R9", "Device", "R", "4.7k", FP_R, (154.94, 190.5), two("+3V3", "I2C_SCL")),
+    ("TP1", "Connector", "TestPoint", "SWDIO", "TestPoint:TestPoint_Pad_D1.0mm", (30.48, 220.98), {"1": "SWDIO"}),
+    ("TP2", "Connector", "TestPoint", "SWDCLK", "TestPoint:TestPoint_Pad_D1.0mm", (43.18, 220.98), {"1": "SWDCLK"}),
+    ("TP3", "Connector", "TestPoint", "RESET", "TestPoint:TestPoint_Pad_D1.0mm", (55.88, 220.98), {"1": "RESET"}),
+    ("TP4", "Connector", "TestPoint", "3V3", "TestPoint:TestPoint_Pad_D1.0mm", (68.58, 220.98), {"1": "+3V3"}),
+    ("TP5", "Connector", "TestPoint", "GND", "TestPoint:TestPoint_Pad_D1.0mm", (81.28, 220.98), {"1": "GND"}),
     # --- GNSS with switched supply
-    ("U4", "Power_Management", "TPS22917DBV", "TPS22917DBV", None, 200.66, 124.46,
+    ("U4", "Power_Management", "TPS22917DBV", "TPS22917DBV", None, (200.66, 124.46),
      {"1": "+3V3", "3": "GNSS_EN", "4": NC, "2": "GND", "6": "3V3_GNSS", "5": "3V3_GNSS"}),
-    ("R7", "Device", "R", "100k", FP_R, 177.8, 137.16, two("GNSS_EN", "GND")),
-    ("C9", "Device", "C", "1uF", FP_C, 226.06, 132.08, two("3V3_GNSS", "GND")),
-    ("C10", "Device", "C", "100nF", FP_C, 238.76, 132.08, two("3V3_GNSS", "GND")),
-    ("U6", "RF_GPS", "MAX-M10S", "MAX-M10S", None, 215.9, 180.34,
+    ("R7", "Device", "R", "100k", FP_R, (177.8, 137.16), two("GNSS_EN", "GND")),
+    ("C9", "Device", "C", "1uF", FP_C, (226.06, 132.08), two("3V3_GNSS", "GND")),
+    ("C10", "Device", "C", "100nF", FP_C, (238.76, 132.08), two("3V3_GNSS", "GND")),
+    ("U6", "RF_GPS", "MAX-M10S", "MAX-M10S", None, (215.9, 180.34),
      {"8": "3V3_GNSS", "7": "3V3_GNSS", "6": "+3V3", "1": "GND", "10": "GND", "12": "GND", "2": "GNSS_TXD", "3": "GNSS_RXD",
       "4": "GNSS_PPS", "11": "GNSS_RF", "5": NC, "9": NC, "13": NC, "14": NC, "15": NC, "16": NC, "17": NC, "18": NC}),
-    ("J3", "Connector", "Conn_Coaxial", "GNSS ant U.FL", "Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical", 261.62, 180.34,
+    # --- GNSS signal buffer, powered from the switched rail so every line is isolated when the GNSS is off
+    ("U8", "74xGxx", "74LVC3G34", "74LVC3G34", "Package_SO:VSSOP-8_2.3x2mm_P0.5mm",
+     {1: (205.74, 215.9), 2: (266.7, 215.9), 3: (327.66, 215.9), 4: (375.92, 215.9)},
+     {"1": "HOST_TX", "7": "GNSS_RXD", "3": "GNSS_TXD", "5": "HOST_RX", "6": "GNSS_PPS", "2": "HOST_PPS",
+      "8": "3V3_GNSS", "4": "GND"}),
+    ("C12", "Device", "C", "100nF", FP_C, (396.24, 215.9), two("3V3_GNSS", "GND")),
+    ("R11", "Device", "R", "100k", FP_R, (142.24, 226.06), two("+3V3", "HOST_RX")),
+    ("R12", "Device", "R", "100k", FP_R, (154.94, 226.06), two("HOST_PPS", "GND")),
+    ("J3", "Connector", "Conn_Coaxial", "GNSS passive ant", "Connector_Coaxial:U.FL_Hirose_U.FL-R-SMT-1_Vertical", (261.62, 180.34),
      {"1": "GNSS_RF", "2": "GND"}),
     # --- accelerometer
-    ("U7", "Sensor_Motion", "LIS3DH", "LIS3DH", None, 330.2, 172.72,
+    ("U7", "Sensor_Motion", "LIS3DH", "LIS3DH", None, (330.2, 172.72),
      {"1": "+3V3", "14": "+3V3", "5": "GND", "10": "GND", "12": "GND", "4": "I2C_SCL", "6": "I2C_SDA", "7": "GND",
       "8": "+3V3", "11": "ACC_INT1", "9": NC, "13": "GND", "15": "GND", "16": "GND", "2": NC, "3": NC}),
-    ("C11", "Device", "C", "100nF", FP_C, 365.76, 160.02, two("+3V3", "GND")),
+    ("C11", "Device", "C", "100nF", FP_C, (365.76, 160.02), two("+3V3", "GND")),
     # --- power flags (tell the rule checker these nets are driven from off-sheet sources)
-    ("#FLG01", "power", "PWR_FLAG", "PWR_FLAG", "", 330.2, 60.96, {"1": "VBUS"}),
-    ("#FLG02", "power", "PWR_FLAG", "PWR_FLAG", "", 350.52, 60.96, {"1": "GND"}),
+    ("#FLG01", "power", "PWR_FLAG", "PWR_FLAG", "", (330.2, 60.96), {"1": "VBUS"}),
+    ("#FLG02", "power", "PWR_FLAG", "PWR_FLAG", "", (350.52, 60.96), {"1": "GND"}),
 ]
 
 NOTES = [
-    (25.4, 30.48, 2.5, "Willie Finder tracker - first-pass schematic (not yet reviewed, not for fabrication)"),
+    (25.4, 30.48, 2.5, "Willie Finder tracker - draft schematic rev 0.2 (not for fabrication)"),
     (25.4, 40.64, 1.8, "USB-C, ESD, charger (77 mA), battery"),
     (190.5, 40.64, 1.8, "3.3 V regulator and battery sense (same divider as RAK4631 firmware expects)"),
     (25.4, 137.16, 1.8, "RAK4630: nRF52840 + SX1262. Pin use mirrors the Meshtastic rak4631 variant"),
     (175.26, 106.68, 1.8, "GNSS on a switched rail (GNSS_EN = P1.02, high = on)"),
     (304.8, 147.32, 1.8, "Accelerometer, I2C address 0x18"),
-    (190.5, 228.6, 1.4, "LoRa and Bluetooth antennas plug into the U.FL sockets on the RAK4630 itself (-I variant)."),
-    (190.5, 233.68, 1.4, "MAX-M10S VIO_SEL left open = 3.3 V I/O (check against the u-blox integration manual)."),
-    (190.5, 238.76, 1.4, "Battery must have its own protection circuit; none on this board."),
+    (294.64, 88.9, 1.8, "USB load sharing: on USB the system runs from VBUS, the cell only charges"),
+    (190.5, 243.84, 1.8, "GNSS buffer on the switched rail: host lines are isolated while the GNSS is off"),
+    (25.4, 248.92, 1.4, "LoRa and Bluetooth antennas plug into the U.FL sockets on the RAK4630 itself (-I variant)."),
+    (25.4, 254.0, 1.4, "J3 is for a passive GNSS antenna only: there is no DC bias on the coax. Route GNSS_RF as 50 ohm."),
+    (25.4, 259.08, 1.4, "MAX-M10S VIO_SEL left open = 3.3 V I/O. Battery must have its own protection circuit."),
+    (25.4, 264.16, 1.4, "Battery reading: divider is nominally x1.667, stock firmware uses x1.73. Calibrate against a meter."),
 ]
 
 # ---------------------------------------------------------------- emit
@@ -180,7 +197,7 @@ def get_sym(lib, name):
     return key, lib_symbols[key]
 
 
-def place(ref, lib, name, value, footprint, x, y, hide_ref=False):
+def place(ref, lib, name, value, footprint, x, y, hide_ref=False, unit=None):
     key, sym = get_sym(lib, name)
     props = []
     for p in find(sym, "property"):
@@ -193,10 +210,11 @@ def place(ref, lib, name, value, footprint, x, y, hide_ref=False):
         if p[1] == "Reference" and hide_ref and "hide" not in eff:
             eff = eff + ["hide"]
         props.append(["property", Q(p[1]), Q(val), ["at", "%.2f" % (x + float(at[1])), "%.2f" % (y - float(at[2])), at[3]], eff])
-    pin_nodes = [["pin", Q(n), ["uuid", uid()]] for n in pins(sym)]
-    body.append(["symbol", ["lib_id", Q(key)], ["at", "%.2f" % x, "%.2f" % y, "0"], ["unit", "1"],
+    pu = pin_units(sym)
+    pin_nodes = [["pin", Q(n), ["uuid", uid()]] for n in pins(sym) if unit is None or pu[n] in (0, unit)]
+    body.append(["symbol", ["lib_id", Q(key)], ["at", "%.2f" % x, "%.2f" % y, "0"], ["unit", str(unit or 1)],
                  ["in_bom", "yes"], ["on_board", "yes"], ["dnp", "no"], ["uuid", uid()]] + props + pin_nodes +
-                [["instances", ["project", Q(PROJECT), ["path", Q("/" + ROOT_UUID), ["reference", Q(ref)], ["unit", "1"]]]]])
+                [["instances", ["project", Q(PROJECT), ["path", Q("/" + ROOT_UUID), ["reference", Q(ref)], ["unit", str(unit or 1)]]]]])
     return sym
 
 
@@ -208,15 +226,21 @@ def wire(x1, y1, x2, y2):
 DIRS = {0: (-1, 0), 180: (1, 0), 90: (0, 1), 270: (0, -1)}   # pin angle -> direction away from the body (sheet coords)
 LABEL = {0: (180, "right"), 180: (0, "left"), 90: (270, "right"), 270: (90, "left")}
 
-for ref, lib, name, value, fp, x, y, netmap in PARTS:
-    sym = place(ref, lib, name, value, fp, x, y)
-    plist = pins(sym)
+for ref, lib, name, value, fp, pos, netmap in PARTS:
+    if isinstance(pos, dict):
+        for u, (ux, uy) in pos.items():
+            sym = place(ref, lib, name, value, fp, ux, uy, unit=u)
+    else:
+        sym = place(ref, lib, name, value, fp, pos[0], pos[1])
+        pos = {0: pos}
+    plist, punit = pins(sym), pin_units(sym)
     missing = set(plist) - set(netmap)
     assert not missing, "%s: pins without a net or NC: %s" % (ref, sorted(missing))
     assert not set(netmap) - set(plist), "%s: unknown pins %s" % (ref, sorted(set(netmap) - set(plist)))
     done = set()
     for num, (pname, px, py, ang, ptype) in plist.items():
         net = netmap[num]
+        x, y = pos.get(punit[num], pos[min(pos)])
         sx, sy = round(x + px, 2), round(y - py, 2)
         if net is not NC:
             nets.setdefault(net, set()).add("%s.%s" % (ref, num))
@@ -246,8 +270,8 @@ for x, y, size, text in NOTES:
                  ["effects", ["font", ["size", str(size), str(size)]], ["justify", "left", "bottom"]], ["uuid", uid()]])
 
 sch = ["kicad_sch", ["version", "20230121"], ["generator", "eeschema"], ["uuid", ROOT_UUID], ["paper", Q("A3")],
-       ["title_block", ["title", Q("Willie Finder tracker")], ["rev", Q("0.1 draft")],
-        ["comment", "1", Q("First pass, generated from pcb/gen_schematic.py. Needs review before layout.")]],
+       ["title_block", ["title", Q("Willie Finder tracker")], ["rev", Q("0.2 draft")],
+        ["comment", "1", Q("Rev 0.2: schematic review findings 1-5 applied. Generated from pcb/gen_schematic.py.")]],
        ["lib_symbols"] + list(lib_symbols.values())] + body + [["sheet_instances", ["path", Q("/"), ["page", Q("1")]]]]
 with open(os.path.join(HERE, PROJECT + ".kicad_sch"), "w") as f:
     f.write(dump(sch) + "\n")

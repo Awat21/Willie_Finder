@@ -88,3 +88,14 @@ def pins(sym):
             out[str(find(p, "number")[0][1])] = (str(find(p, "name")[0][1]), float(at[1]), float(at[2]),
                                                  int(float(at[3])) if len(at) > 3 else 0, p[1])
     return out
+
+
+def pin_units(sym):
+    """{pin number: unit number} (unit 0 means common to all units)."""
+    base = str(sym[1]).split(":")[-1]
+    out = {}
+    for unit in find(sym, "symbol"):
+        u = int(str(unit[1])[len(base) + 1:].split("_")[0])
+        for p in find(unit, "pin"):
+            out[str(find(p, "number")[0][1])] = u
+    return out
