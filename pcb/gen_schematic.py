@@ -101,26 +101,27 @@ PARTS = [
     ("R2", "Device", "R", "5.1k", FP_R, (88.9, 60.96), two("CC2", "GND")),
     ("U5", "Power_Protection", "USBLC6-2SC6", "USBLC6-2SC6", None, (83.82, 86.36),
      {"1": "USB_DP", "6": "USB_DP", "3": "USB_DM", "4": "USB_DM", "5": "VBUS", "2": "GND"}),
-    ("U2", "Battery_Management", "MCP73831-2-OT", "MCP73831T-2ACI/OT", None, (127.0, 60.96),
-     {"4": "VBUS", "2": "GND", "3": "+BATT", "5": "CHG_PROG", "1": "CHG_STAT"}),
-    ("C1", "Device", "C", "4.7uF", FP_C6, (106.68, 60.96), two("VBUS", "GND")),
-    ("R3", "Device", "R", "13k", FP_R, (106.68, 83.82), two("CHG_PROG", "GND")),
-    ("C2", "Device", "C", "4.7uF", FP_C6, (152.4, 60.96), two("+BATT", "GND")),
-    ("R4", "Device", "R", "1k", FP_R, (121.92, 86.36), two("VBUS", "CHG_LED")),
-    ("D1", "Device", "LED", "CHG amber", "LED_SMD:LED_0402_1005Metric", (139.7, 86.36), {"2": "CHG_LED", "1": "CHG_STAT"}),
-    ("J2", "Connector_Generic", "Conn_01x02", "LiPo 3.7V", "Connector_Wire:SolderWire-0.15sqmm_1x02_P4mm_D0.5mm_OD1.5mm", (172.72, 60.96),
+    # MCP73871: power-path charger. SEL low = USB input, PROG2 low = 100 mA total input limit; the battery
+    # supplements the load through the internal ideal diode. THERM 10k = no thermistor, VPCC to IN = disabled,
+    # TE low = safety timer on, CE high = charging enabled (per Microchip DS20002090E).
+    ("U2", "Battery_Management", "MCP73871-2CC", "MCP73871-2CCI/ML", None, (142.24, 71.12),
+     {"18": "VBUS", "19": "VBUS", "2": "VBUS", "17": "VBUS", "3": "GND", "4": "GND", "9": "GND",
+      "10": "GND", "11": "GND", "21": "GND", "13": "CHG_PROG1", "12": "CHG_PROG3", "5": "CHG_THERM",
+      "1": "VSYS", "20": "VSYS", "14": "+BATT", "15": "+BATT", "16": "+BATT", "8": "CHG_STAT", "6": NC, "7": NC}),
+    ("C1", "Device", "C", "4.7uF", FP_C6, (106.68, 116.84), two("VBUS", "GND")),
+    ("R3", "Device", "R", "13k", FP_R, (119.38, 116.84), two("CHG_PROG1", "GND")),
+    ("R14", "Device", "R", "100k", FP_R, (132.08, 116.84), two("CHG_PROG3", "GND")),
+    ("R15", "Device", "R", "10k", FP_R, (147.32, 116.84), two("CHG_THERM", "GND")),
+    ("R4", "Device", "R", "1k", FP_R, (157.48, 116.84), two("VBUS", "CHG_LED")),
+    ("C2", "Device", "C", "4.7uF", FP_C6, (170.18, 116.84), two("+BATT", "GND")),
+    ("D1", "Device", "LED", "CHG amber", "LED_SMD:LED_0402_1005Metric", (187.96, 93.98), {"2": "CHG_LED", "1": "CHG_STAT"}),
+    ("J2", "Connector_Generic", "Conn_01x02", "LiPo 3.7V", "Connector_Wire:SolderWire-0.15sqmm_1x02_P4mm_D0.5mm_OD1.5mm", (403.86, 60.96),
      {"1": "+BATT", "2": "GND"}),
     # --- 3.3 V regulator and battery sense
     ("U3", "Regulator_Linear", "XC6220B331MR", "XC6220B331MR", None, (215.9, 60.96),
      {"1": "VSYS", "3": "VSYS", "2": "GND", "5": "+3V3", "4": NC}),
     ("C3", "Device", "C", "10uF", FP_C6, (193.04, 68.58), two("VSYS", "GND")),
     ("C4", "Device", "C", "4.7uF", FP_C6, (238.76, 68.58), two("+3V3", "GND")),
-    # --- USB load sharing (Microchip AN1149): USB feeds the system through D3 and Q1 disconnects the battery
-    ("Q1", "Device", "Q_PMOS_GSD", "DMG2305UX", "Package_TO_SOT_SMD:SOT-23", (350.52, 106.68),
-     {"1": "VBUS", "2": "VSYS", "3": "+BATT"}),
-    ("D3", "Device", "D_Schottky", "PMEG2005EJ", "Diode_SMD:D_SOD-323", (325.12, 106.68), {"2": "VBUS", "1": "VSYS"}),
-    ("R13", "Device", "R", "100k", FP_R, (302.26, 106.68), two("VBUS", "GND")),
-    ("#FLG03", "power", "PWR_FLAG", "PWR_FLAG", "", (370.84, 60.96), {"1": "VSYS"}),
     ("R5", "Device", "R", "1M", FP_R, (261.62, 58.42), two("+BATT", "VBAT_SENSE")),
     ("R6", "Device", "R", "1.5M", FP_R, (261.62, 81.28), two("VBAT_SENSE", "GND")),
     ("C5", "Device", "C", "100nF", FP_C, (276.86, 81.28), two("VBAT_SENSE", "GND")),
@@ -170,18 +171,21 @@ PARTS = [
 ]
 
 NOTES = [
-    (25.4, 30.48, 2.5, "Willie Finder tracker - draft schematic rev 0.2 (not for fabrication)"),
-    (25.4, 40.64, 1.8, "USB-C, ESD, charger (77 mA), battery"),
+    (25.4, 30.48, 2.5, "Willie Finder tracker - draft schematic rev 0.3 (not for fabrication)"),
+    (25.4, 40.64, 1.8, "USB-C, ESD, power-path charger (100 mA USB input limit), battery"),
     (190.5, 40.64, 1.8, "3.3 V regulator and battery sense (same divider as RAK4631 firmware expects)"),
     (25.4, 137.16, 1.8, "RAK4630: nRF52840 + SX1262. Pin use mirrors the Meshtastic rak4631 variant"),
     (175.26, 106.68, 1.8, "GNSS on a switched rail (GNSS_EN = P1.02, high = on)"),
     (304.8, 147.32, 1.8, "Accelerometer, I2C address 0x18"),
-    (294.64, 88.9, 1.8, "USB load sharing: on USB the system runs from VBUS, the cell only charges"),
     (190.5, 243.84, 1.8, "GNSS buffer on the switched rail: host lines are isolated while the GNSS is off"),
     (25.4, 248.92, 1.4, "LoRa and Bluetooth antennas plug into the U.FL sockets on the RAK4630 itself (-I variant)."),
     (25.4, 254.0, 1.4, "J3 is for a passive GNSS antenna only: there is no DC bias on the coax. Route GNSS_RF as 50 ohm."),
     (25.4, 259.08, 1.4, "MAX-M10S VIO_SEL left open = 3.3 V I/O. Battery must have its own protection circuit."),
     (25.4, 264.16, 1.4, "Battery reading: divider is nominally x1.667, stock firmware uses x1.73. Calibrate against a meter."),
+    (25.4, 271.78, 1.4, "Stacked pins (several pads share one drawn pin; all are in the netlist):"),
+    (25.4, 276.86, 1.4, "U6 GND = 1, 10, 12.  U7 GND = 5, 10, 12.  U2 IN = 18, 19; OUT = 1, 20; VBAT = 14, 15; VSS = 10, 11, EP(21).  J1 VBUS = A4, A9, B4, B9; GND = A1, A12, B1, B12."),
+    (294.64, 88.9, 1.4, "U2: SEL and PROG2 low = USB, 100 mA input limit. The cell supplements"),
+    (294.64, 93.98, 1.4, "the load above that. Only C1 (4.7 uF) sits directly on VBUS."),
 ]
 
 # ---------------------------------------------------------------- emit
@@ -270,8 +274,8 @@ for x, y, size, text in NOTES:
                  ["effects", ["font", ["size", str(size), str(size)]], ["justify", "left", "bottom"]], ["uuid", uid()]])
 
 sch = ["kicad_sch", ["version", "20230121"], ["generator", "eeschema"], ["uuid", ROOT_UUID], ["paper", Q("A3")],
-       ["title_block", ["title", Q("Willie Finder tracker")], ["rev", Q("0.2 draft")],
-        ["comment", "1", Q("Rev 0.2: schematic review findings 1-5 applied. Generated from pcb/gen_schematic.py.")]],
+       ["title_block", ["title", Q("Willie Finder tracker")], ["rev", Q("0.3 draft")],
+        ["comment", "1", Q("Rev 0.3: power-path charger replaces discrete load sharing. Generated from pcb/gen_schematic.py.")]],
        ["lib_symbols"] + list(lib_symbols.values())] + body + [["sheet_instances", ["path", Q("/"), ["page", Q("1")]]]]
 with open(os.path.join(HERE, PROJECT + ".kicad_sch"), "w") as f:
     f.write(dump(sch) + "\n")
