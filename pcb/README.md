@@ -2,12 +2,13 @@
 
 Draft schematic (rev 0.3) for a single-board version of the collar tracker. **Not ready for layout or fabrication.**
 
-- `willie_tracker.kicad_sch` - KiCad 7 schematic (opens in KiCad 7 or newer).
+- `willie_tracker.kicad_sch`, `willie_tracker.kicad_pro`, `sym-lib-table` - KiCad 9 project (needs KiCad 9 or newer).
 - `willie_tracker.pdf` - the same schematic as a PDF.
 - `willie.kicad_sym` - project symbol library (RAK4630).
 - `gen_schematic.py`, `sexpr.py` - generator; the parts and net table at the top of `gen_schematic.py` are the source.
 - `willie_tracker.net` - netlist exported by KiCad from the schematic.
-- `check_netlist.py` - regenerates, exports the netlist with `kicad-cli`, compares it to the net table and checks the stacked pads.
+- `check_netlist.py` - regenerates, exports the netlist with `kicad-cli`, compares it to the net table, checks the stacked pads, runs ERC and exports the PDF.
+- `erc_report.txt` - KiCad's electrical rule check report.
 
 ## What is on it
 
@@ -29,7 +30,7 @@ Response to the rev 0.2 schematic review:
 
 | Finding | Status |
 |---|---|
-| 1. U6 and U7 ground pads unverified | Verified in the native netlist (`willie_tracker.net`, exported by KiCad): U6.1, U6.10, U6.12, U7.5, U7.10 and U7.12 are all on GND. `check_netlist.py` now asserts these and the other stacked pads on every run, and the schematic lists the stacked pins in a note. The library footprints (`RF_GPS:ublox_MAX`, `Package_LGA:LGA-16_3x3mm_P0.5mm_LayoutBorder3x5y`) contain pads 1-18 and 1-16. ERC is still outstanding. |
+| 1. U6 and U7 ground pads unverified | Verified in the native netlist (`willie_tracker.net`, exported by KiCad): U6.1, U6.10, U6.12, U7.5, U7.10 and U7.12 are all on GND. `check_netlist.py` now asserts these and the other stacked pads on every run, and the schematic lists the stacked pins in a note. The library footprints (`RF_GPS:ublox_MAX`, `Package_LGA:LGA-16_3x3mm_P0.5mm_LayoutBorder3x5y`) contain pads 1-18 and 1-16. ERC has since been run; see below. |
 | 2. USB inrush and current budget | Changed: the MCP73831 and the discrete load sharing are replaced by an MCP73871 power-path charger. SEL and PROG2 are tied low, which limits total USB input current to 100 mA (80-100 mA per the datasheet). Above that the battery supplements the load through the internal ideal diode. Only C1 (4.7 uF) is directly on VBUS; C3 is behind the current limit. |
 | 3. Battery handover and VBUS leakage | Removed with the discrete circuit: Q1, D3 and R13 are gone. Handover is inside the MCP73871. |
 
@@ -37,9 +38,21 @@ Earlier fixes kept: regulator capacitors (10 uF / 4.7 uF), GNSS buffer U8, passi
 
 MCP73871 pin settings, checked against Microchip DS20002090E: SEL low = USB input; PROG2 low = 100 mA; THERM 10k to VSS = no thermistor; VPCC tied to IN = disabled; TE low = safety timer enabled; CE high = charging enabled; PROG1 13k = 77 mA; PROG3 100k = 10 mA termination.
 
+## Electrical rule check
+
+Run with `kicad-cli` 9.0.9, all severities. Three items remain, all understood:
+
+| Item | Severity | Explanation |
+|---|---|---|
+| U4 QOD (open collector) tied to VOUT (power output) | error | Intended: QOD is the load switch's output-discharge pin and is tied to its output. To be confirmed against the TPS22917 datasheet, then excluded. |
+| U7 SDO/SA0 (bidirectional) on GND | warning | Intended: address-select pin tied low for I2C address 0x18. |
+| Footprint library `willie` not found | warning | The RAK4630 footprint has not been drawn yet. |
+
+No unconnected pins, undriven power pins or conflicting outputs were reported.
+
 ## Open items before layout
 
-1. No electrical rule check has been run: KiCad 7's command-line tool does not include one. Run ERC in the KiCad GUI.
+1. Resolve or formally exclude the three ERC items above.
 2. RAK4630 supply pins (VDD_NRF, VBAT_NRF, VBAT_SX, VBAT_IO_SX) are all tied to 3.3 V. Confirm against RAK's RAK4631 reference schematic.
 3. The RAK4630 footprint does not exist yet (`willie:RAK4630` is a placeholder). Check symbol-to-footprint pad assignments for every part once footprints are final.
 4. VBUS capacitance: C1 is 4.7 uF. Whether the RAK4630 has its own capacitor on its VBUS pin is not known; if it does, add it to the total and keep the sum under 10 uF.

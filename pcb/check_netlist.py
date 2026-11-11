@@ -35,4 +35,12 @@ shutil.copy(out, os.path.join(here, "willie_tracker.net"))
 for k in bad:
     print("MISMATCH", k, want.get(k), got.get(k))
 print("nets: %d, mismatches: %d" % (len(got), len(bad)))
+# electrical rule check (needs KiCad 8 or newer)
+sch = os.path.join(here, "willie_tracker.kicad_sch")
+subprocess.run(["kicad-cli", "sch", "erc", "--severity-all", "-o", os.path.join(here, "erc_report.txt"), sch],
+               check=True, capture_output=True)
+kinds = [l.split("]")[0][1:] for l in open(os.path.join(here, "erc_report.txt")) if l.startswith("[")]
+print("ERC:", {k: kinds.count(k) for k in sorted(set(kinds))})
+subprocess.run(["kicad-cli", "sch", "export", "pdf", "-o", os.path.join(here, "willie_tracker.pdf"), sch],
+               check=True, capture_output=True)
 sys.exit(1 if bad else 0)

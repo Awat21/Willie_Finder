@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "willie")(type "KiCad")(uri "${KIPRJMOD}/willie.kicad_sym")(options "")(descr "Willie Finder project symbols"))
+)

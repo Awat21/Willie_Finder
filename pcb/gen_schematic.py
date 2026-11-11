@@ -273,7 +273,7 @@ for x, y, size, text in NOTES:
     body.append(["text", Q(text), ["at", "%.2f" % x, "%.2f" % y, "0"],
                  ["effects", ["font", ["size", str(size), str(size)]], ["justify", "left", "bottom"]], ["uuid", uid()]])
 
-sch = ["kicad_sch", ["version", "20230121"], ["generator", "eeschema"], ["uuid", ROOT_UUID], ["paper", Q("A3")],
+sch = ["kicad_sch", ["version", "20250114"], ["generator", Q("eeschema")], ["generator_version", Q("9.0")], ["uuid", ROOT_UUID], ["paper", Q("A3")],
        ["title_block", ["title", Q("Willie Finder tracker")], ["rev", Q("0.3 draft")],
         ["comment", "1", Q("Rev 0.3: power-path charger replaces discrete load sharing. Generated from pcb/gen_schematic.py.")]],
        ["lib_symbols"] + list(lib_symbols.values())] + body + [["sheet_instances", ["path", Q("/"), ["page", Q("1")]]]]

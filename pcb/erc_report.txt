@@ -1,0 +1,17 @@
+ERC report (2026-11-11T20:38:36+0000, Encoding UTF8)
+Report includes: Errors, Warnings, Exclusions
+
+***** Sheet /
+[pin_to_pin]: Pins of type Open collector and Power output are connected
+    ; error
+    @(210.82 mm, 124.46 mm): Symbol U4 Pin 5 [QOD, Open collector, Line]
+    @(210.82 mm, 121.92 mm): Symbol U4 Pin 6 [VOUT, Power output, Line]
+[pin_to_pin]: Pins of type Output and Power output are connected
+    ; error
+    @(317.50 mm, 172.72 mm): Symbol U7 Pin 7 [SDO, Output, Line]
+    @(350.52 mm, 60.96 mm): Symbol #FLG02 Pin 1 [Power output, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'willie'.
+    ; warning
+    @(88.90 mm, 175.26 mm): Symbol U1 [RAK4630]
+
+ ** ERC messages: 3  Errors 2  Warnings 1
