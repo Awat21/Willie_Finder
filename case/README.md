@@ -1,7 +1,8 @@
 # Collar pod case
 
 Form-factor study (v0) for the collar unit: RAK19003 mini base + RAK4631 + RAK12500 GPS,
-a 250 mAh LiPo (5 x 20 x 30 mm) and a 15 mm GPS patch antenna.
+a 250 mAh LiPo (5 x 20 x 30 mm), a 15 mm GPS patch antenna, and a 38 x 10 mm adhesive
+flex LoRa antenna stuck to the collar beside the pod.
 
 - `collar_pod.scad` - parametric OpenSCAD source. Set `part` to `base`, `lid`, or `assembly`.
 - `stl/` - exported parts (`base.stl` and `lid.stl` are the case; the rest are mock components).

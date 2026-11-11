@@ -4,7 +4,7 @@
 // Two flat bays joined at an angle so the pod follows the neck instead of standing off it.
 // All dimensions in mm. Values marked ASSUMED must be checked against real parts.
 
-part = "assembly"; // base | lid | board | battery | gps | strap | assembly
+part = "assembly"; // base | lid | board | battery | gps | strap | antenna | assembly
 
 // ---- electronics envelope ----
 board_l = 35;      // RAK19003 outline
@@ -26,6 +26,8 @@ rr    = 3.2;       // outside corner radius
 strap_w = 10.5;    // cat collar webbing
 strap_t = 1.8;
 lug_l = 7;
+ant_l = 38;        // adhesive flex antenna on the collar, e.g. Molex 211140-0100 (38 x 10 x 0.1)
+ant_w = 10;
 
 in_w = board_w + 2*clr;            // 31
 in_h = stack_h + 0.3;              // 9.8
@@ -97,14 +99,19 @@ module board() frameA() translate([clr, -board_w/2, floor]) {
 module battery() frameB() translate([clr, -batt_w/2, floor+0.2]) cube([batt_l, batt_w, batt_h]);
 module gps()     frameB() translate([clr+2.5, -patch/2, floor+0.4+batt_h]) cube([patch, patch, patch_h]);
 module strap() {                    // collar webbing passing through both lugs, under the pod
-  frameA() translate([-2,-strap_w/2,-strap_t-0.2]) cube([la+lug_l+22, strap_w, strap_t]);
+  frameA() translate([-2,-strap_w/2,-strap_t-0.2]) cube([la+lug_l+ant_l+12, strap_w, strap_t]);
   frameB() translate([-2,-strap_w/2,-strap_t-0.2]) cube([lb+lug_l+22, strap_w, strap_t]);
 }
 
+module antenna() {                  // stuck to the outer face of the collar, just past the lug
+  frameA() translate([la-rr+lug_l+2, -ant_w/2, -0.2]) cube([ant_l, ant_w, 0.3]);
+}
+
 if (part=="base") base();
+if (part=="antenna") antenna();
 if (part=="lid") lid();
 if (part=="board") board();
 if (part=="battery") battery();
 if (part=="gps") gps();
 if (part=="strap") strap();
-if (part=="assembly") { base(); %lid(); board(); battery(); gps(); strap(); }
+if (part=="assembly") { base(); %lid(); board(); battery(); gps(); strap(); antenna(); }
