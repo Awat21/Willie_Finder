@@ -1,4 +1,4 @@
-ERC report (2026-11-11T20:38:36+0000, Encoding UTF8)
+ERC report (2026-11-11T21:11:00+0000, Encoding UTF8)
 Report includes: Errors, Warnings, Exclusions
 
 ***** Sheet /
@@ -10,8 +10,5 @@ Report includes: Errors, Warnings, Exclusions
     ; error
     @(317.50 mm, 172.72 mm): Symbol U7 Pin 7 [SDO, Output, Line]
     @(350.52 mm, 60.96 mm): Symbol #FLG02 Pin 1 [Power output, Line]
-[footprint_link_issues]: The current configuration does not include the footprint library 'willie'.
-    ; warning
-    @(88.90 mm, 175.26 mm): Symbol U1 [RAK4630]
 
- ** ERC messages: 3  Errors 2  Warnings 1
+ ** ERC messages: 2  Errors 2  Warnings 0

@@ -1,6 +1,6 @@
 # Custom tracker PCB
 
-Draft schematic (rev 0.3) for a single-board version of the collar tracker. **Not ready for layout or fabrication.**
+Draft schematic (rev 0.3) and a first-pass board layout for a single-board version of the collar tracker. **Not ready for fabrication.**
 
 - `willie_tracker.kicad_sch`, `willie_tracker.kicad_pro`, `sym-lib-table` - KiCad 9 project (needs KiCad 9 or newer).
 - `willie_tracker.pdf` - the same schematic as a PDF.
@@ -9,6 +9,12 @@ Draft schematic (rev 0.3) for a single-board version of the collar tracker. **No
 - `willie_tracker.net` - netlist exported by KiCad from the schematic.
 - `check_netlist.py` - regenerates, exports the netlist with `kicad-cli`, compares it to the net table, checks the stacked pads, runs ERC and exports the PDF.
 - `erc_report.txt` - KiCad's electrical rule check report.
+- `willie_tracker.kicad_pcb` - first-pass board layout (KiCad 9).
+- `willie.pretty/RAK4630.kicad_mod`, `fp-lib-table` - RAK4630 land pattern, drawn from RAK's datasheet drawings.
+- `gen_layout.py` - places the parts (the placement table at the top is the source). `route.py` - grid autorouter with rip-up and re-route. Run both with the Python that has KiCad's `pcbnew` module: `/usr/bin/python3 route.py`.
+- `drc_report.txt` - KiCad's design rule check report for the layout.
+- `willie_tracker_board.step` - bare board (outline and holes, no component bodies) for CAD.
+- `renders/` - top and bottom views of the board.
 
 ## What is on it
 
@@ -38,30 +44,61 @@ Earlier fixes kept: regulator capacitors (10 uF / 4.7 uF), GNSS buffer U8, passi
 
 MCP73871 pin settings, checked against Microchip DS20002090E: SEL low = USB input; PROG2 low = 100 mA; THERM 10k to VSS = no thermistor; VPCC tied to IN = disabled; TE low = safety timer enabled; CE high = charging enabled; PROG1 13k = 77 mA; PROG3 100k = 10 mA termination.
 
+## Board layout (first pass)
+
+| | |
+|---|---|
+| Size | 25.5 x 28.0 mm, 0.8 mm thick |
+| Layers | 4: top (parts and signals), inner 1 (solid ground plane), inner 2 (signals), bottom (parts and signals) |
+| Parts | Both sides: RAK4630, USB-C, charger on top; GNSS, regulator, sensors, buffer on the bottom |
+| Assembled thickness | About 6.5 mm: USB-C 3.2 mm on top, board 0.8 mm, MAX-M10S 2.5 mm underneath (estimate from datasheet heights) |
+| Rules | 0.2 mm tracks, 0.15 mm clearance, 0.6 / 0.3 mm vias, tented |
+| Routing | 876 track segments, 106 vias, every net connected |
+| KiCad DRC | 0 violations, 0 unconnected pads, 0 schematic parity issues (`drc_report.txt`) |
+
+Both sides are populated because one side cannot hold everything in less area than the RAK19003 base board
+(30 x 35 mm). This board is about 37% smaller in area than that, not the 22 x 26 mm single-sided board first estimated.
+
+The routing was done by `route.py`, a simple autorouter written for this board. It satisfies the clearance rules but
+has had no engineering review. Before fabrication:
+
+1. All tracks are 0.2 mm, including power (VBUS, VSYS, +BATT, +3V3). Widen the power tracks.
+2. GNSS_RF is a short 0.2 mm track, not a calculated 50 ohm line. Set its width from the board house's stackup.
+3. Tracks and tented vias run under the RAK4630. Check RAK's layout guidance for keep-out areas under the module.
+4. Decoupling capacitors were placed for fit, not for shortest loop to their pins. Review each one.
+5. USB D+ and D- are routed as two ordinary tracks, not a matched pair. Acceptable at full speed over this length; confirm.
+6. Only inner layer 1 has a ground pour. Add ground pours on the outer layers and stitch them.
+7. The RAK4630 land pattern was drawn from the dimensions in RAK's datasheet images. Check it against a real module or RAK's own footprint before ordering.
+8. Reference designators are hidden on the silkscreen; there is no silkscreen artwork, fiducials or mounting features.
+9. USB-C sits on the top side at the right-hand short edge; the connector's exact overhang past the board edge is not checked.
+
 ## Electrical rule check
 
-Run with `kicad-cli` 9.0.9, all severities. Three items remain, all understood:
+Run with `kicad-cli` 9.0.9, all severities. Two items remain, both intended:
 
 | Item | Severity | Explanation |
 |---|---|---|
-| U4 QOD (open collector) tied to VOUT (power output) | error | Intended: QOD is the load switch's output-discharge pin and is tied to its output. To be confirmed against the TPS22917 datasheet, then excluded. |
+| U4 QOD (open collector) tied to VOUT (power output) | error | Confirmed against TI's TPS22917 datasheet (section 9.3.3): shorting QOD to VOUT is one of the three documented configurations and uses the internal discharge resistance. CT left open is also a documented option. KiCad flags the pin types only. |
 | U7 SDO/SA0 (bidirectional) on GND | warning | Intended: address-select pin tied low for I2C address 0x18. |
-| Footprint library `willie` not found | warning | The RAK4630 footprint has not been drawn yet. |
 
 No unconnected pins, undriven power pins or conflicting outputs were reported.
 
-## Open items before layout
+## Confirmed since rev 0.3
 
-1. Resolve or formally exclude the three ERC items above.
-2. RAK4630 supply pins (VDD_NRF, VBAT_NRF, VBAT_SX, VBAT_IO_SX) are all tied to 3.3 V. Confirm against RAK's RAK4631 reference schematic.
-3. The RAK4630 footprint does not exist yet (`willie:RAK4630` is a placeholder). Check symbol-to-footprint pad assignments for every part once footprints are final.
-4. VBUS capacitance: C1 is 4.7 uF. Whether the RAK4630 has its own capacitor on its VBUS pin is not known; if it does, add it to the total and keep the sum under 10 uF.
-5. USB charge current: the datasheet says PROG1 sets fast charge when SEL is high. With SEL low the charge current may follow the 100 mA USB limit rather than the 77 mA resistor setting. Confirm, and check either value against the chosen cell's rating.
-6. Charger variant: -2CC is a first pick (4.20 V). Confirm its timer period and low-battery-indicator options suit a small cell that powers a load while charging.
-7. With USB connected the regulator input (VSYS) follows VBUS, about 5 V. The XC6220 is within its input rating there; confirm.
-8. U8 relies on the 74LVC family's powered-off protection. The review confirmed this for the Nexperia part; use that manufacturer or re-check.
-9. LIS3DH unused ADC pins are tied to ground; confirm against the datasheet.
-10. Pin numbers for stock parts come from the KiCad libraries; RAK4630 pins come from the RAK datasheet table.
+- TPS22917 QOD to VOUT: confirmed (above). Its DBV pinout in the datasheet matches the KiCad symbol.
+- RAK4630 supply pins: RAK's reference schematic states that for a single 3.3 V supply VBAT_NRF, VDD_NRF, VBAT_SX and VBAT_IO_SX are all connected to 3.3 V, as drawn here.
+- RAK4630 pin order: RAK's pinout drawing matches the land pattern (pin 1 at the top-right of the top row, counting anticlockwise).
+- VBUS capacitance: RAK's schematic shows a 4.7 uF capacitor on VBUS inside the module. With C1 that is 9.4 uF nominal directly on VBUS, just under the 10 uF limit.
+
+## Open items
+
+1. USB charge current: the datasheet says PROG1 sets fast charge when SEL is high. With SEL low the charge current may follow the 100 mA USB limit rather than the 77 mA resistor setting. Confirm, and check either value against the chosen cell's rating.
+2. Charger variant: -2CC is a first pick (4.20 V). Confirm its timer period and low-battery-indicator options.
+3. VBUS capacitance is 9.4 uF nominal against a 10 uF limit; decide whether to reduce C1.
+4. With USB connected the regulator input (VSYS) follows VBUS, about 5 V. Confirm against the XC6220 rating.
+5. U8 relies on the 74LVC family's powered-off protection. The review confirmed this for the Nexperia part; use that manufacturer or re-check.
+6. LIS3DH unused ADC pins are tied to ground; confirm against the datasheet.
+7. The layout items listed under "Board layout" above.
 
 ## To verify on a prototype
 

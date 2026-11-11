@@ -1,2 +1,4 @@
 __pycache__/
 intended_nets.json
+*.kicad_prl
+*-backups/
