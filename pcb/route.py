@@ -223,12 +223,12 @@ def cost_maps(u):
     for y, x in centres:
         near[y, x] = 0
     vok &= near == 0
-    return P, PEN, bytearray(vok.tobytes()), vpen.astype(np.uint8).tobytes()
+    return P, PEN, bytearray(vok.tobytes()), vpen.astype(np.uint8).tobytes(), set(centres)
 
 
 def astar(maps, sources, targets, want_via):
     """sources: iterable of (l, y, x). targets: set of cells, or with want_via any cell where a via fits."""
-    P, PEN, V, VPEN = maps
+    P, PEN, V, VPEN, FREE = maps
     if targets:
         ty = sum(t[1] for t in targets) / len(targets)
         tx = sum(t[2] for t in targets) / len(targets)
@@ -266,6 +266,8 @@ def astar(maps, sources, targets, want_via):
                 heapq.heappush(heap, (g2 + h, g2, s2))
         if V[i]:
             gv = g + VIA_COST + VPEN[i]
+            if want_via and (y, x) in FREE:
+                gv = g                         # an existing via of this net: join it instead of drilling another
             if want_via and g > 0:
                 s2 = (-1, y, x)
                 if gv < best.get(s2, 1e18):
@@ -436,6 +438,23 @@ for name, x, y in vias:
     v.SetDrill(MM(DRILL))
     v.SetNet(nets[name])
     board.Add(v)
+def pour(netname, layer):
+    z = pcbnew.ZONE(board)
+    z.SetLayer(layer)
+    z.SetNet(nets[netname])
+    z.SetLocalClearance(MM(0.2))
+    z.SetMinThickness(MM(0.2))
+    z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
+    o = z.Outline()
+    o.NewOutline()
+    for x, y in ((OX, OY), (OX + W, OY), (OX + W, OY + H), (OX, OY + H)):
+        o.Append(MM(x), MM(y))
+    board.Add(z)
+
+
+if not os.environ.get("NO_POURS"):
+    pour("GND", pcbnew.B_Cu)      # bottom has no parts: flood it with ground around the tracks
+    pour("+3V3", pcbnew.In2_Cu)   # spare inner-layer area carries the 3.3 V rail
 pcbnew.ZONE_FILLER(board).Fill(board.Zones())
 pcbnew.SaveBoard(PCB, board)
 print("segments %d, vias %d, failed: %s" % (len(segs), len(vias), all_failed or "none"))

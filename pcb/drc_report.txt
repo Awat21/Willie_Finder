@@ -1,8 +1,11 @@
 ** Drc report for willie_tracker.kicad_pcb **
-** Created on 2026-11-11T21:29:03+0000 **
+** Created on 2026-11-11T21:48:46+0000 **
 ** Report includes: Errors, Warnings, Exclusions **
 
-** Found 0 DRC violations **
+** Found 1 DRC violations **
+[lib_footprint_mismatch]: Footprint 'USB_C_Receptacle_GCT_USB4110' does not match copy in library 'Connector_USB'.
+    Local override; warning
+    @(12.5000 mm, 39.7800 mm): Footprint J1
 
 ** Found 0 unconnected pads **
 

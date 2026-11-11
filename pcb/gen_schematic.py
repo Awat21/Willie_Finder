@@ -94,7 +94,7 @@ RAK_NETS = {
 # (ref, lib, symbol, value, footprint or None for library default, x, y, {pin: net})
 PARTS = [
     # --- USB-C, ESD, charger, battery
-    ("J1", "Connector", "USB_C_Receptacle_USB2.0_16P", "USB-C", "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12", (40.64, 68.58),
+    ("J1", "Connector", "USB_C_Receptacle_USB2.0_16P", "USB4110-GF-A", "Connector_USB:USB_C_Receptacle_GCT_USB4110", (40.64, 68.58),
      {"A4": "VBUS", "A9": "VBUS", "B4": "VBUS", "B9": "VBUS", "A5": "CC1", "B5": "CC2", "A6": "USB_DP", "B6": "USB_DP",
       "A7": "USB_DM", "B7": "USB_DM", "A8": NC, "B8": NC, "A1": "GND", "A12": "GND", "B1": "GND", "B12": "GND", "S1": "GND"}),
     ("R1", "Device", "R", "5.1k", FP_R, (76.2, 60.96), two("CC1", "GND")),
@@ -115,8 +115,9 @@ PARTS = [
     ("R4", "Device", "R", "1k", FP_R, (157.48, 116.84), two("VBUS", "CHG_LED")),
     ("C2", "Device", "C", "4.7uF", FP_C6, (170.18, 116.84), two("+BATT", "GND")),
     ("D1", "Device", "LED", "CHG amber", "LED_SMD:LED_0402_1005Metric", (187.96, 93.98), {"2": "CHG_LED", "1": "CHG_STAT"}),
-    ("J2", "Connector_Generic", "Conn_01x02", "LiPo 3.7V", "Connector_Wire:SolderWire-0.15sqmm_1x02_P4mm_D0.5mm_OD1.5mm", (403.86, 60.96),
-     {"1": "+BATT", "2": "GND"}),
+    # battery leads solder to two surface-mount pads, so nothing goes through the board
+    ("J2", "Connector_Generic", "Conn_01x01", "BAT+", "Connector_Wire:SolderWirePad_1x01_SMD_1.5x3mm", (403.86, 60.96), {"1": "+BATT"}),
+    ("J4", "Connector_Generic", "Conn_01x01", "BAT-", "Connector_Wire:SolderWirePad_1x01_SMD_1.5x3mm", (403.86, 73.66), {"1": "GND"}),
     # --- 3.3 V regulator and battery sense
     ("U3", "Regulator_Linear", "XC6220B331MR", "XC6220B331MR", None, (215.9, 60.96),
      {"1": "VSYS", "3": "VSYS", "2": "GND", "5": "+3V3", "4": NC}),
@@ -171,7 +172,7 @@ PARTS = [
 ]
 
 NOTES = [
-    (25.4, 30.48, 2.5, "Willie Finder tracker - draft schematic rev 0.3 (not for fabrication)"),
+    (25.4, 30.48, 2.5, "Willie Finder tracker - draft schematic rev 0.4 (not for fabrication)"),
     (25.4, 40.64, 1.8, "USB-C, ESD, power-path charger (100 mA USB input limit), battery"),
     (190.5, 40.64, 1.8, "3.3 V regulator and battery sense (same divider as RAK4631 firmware expects)"),
     (25.4, 137.16, 1.8, "RAK4630: nRF52840 + SX1262. Pin use mirrors the Meshtastic rak4631 variant"),
@@ -274,8 +275,8 @@ for x, y, size, text in NOTES:
                  ["effects", ["font", ["size", str(size), str(size)]], ["justify", "left", "bottom"]], ["uuid", uid()]])
 
 sch = ["kicad_sch", ["version", "20250114"], ["generator", Q("eeschema")], ["generator_version", Q("9.0")], ["uuid", ROOT_UUID], ["paper", Q("A3")],
-       ["title_block", ["title", Q("Willie Finder tracker")], ["rev", Q("0.3 draft")],
-        ["comment", "1", Q("Rev 0.3: power-path charger replaces discrete load sharing. Generated from pcb/gen_schematic.py.")]],
+       ["title_block", ["title", Q("Willie Finder tracker")], ["rev", Q("0.4 draft")],
+        ["comment", "1", Q("Rev 0.4: all-surface-mount USB-C connector and battery pads. Generated from pcb/gen_schematic.py.")]],
        ["lib_symbols"] + list(lib_symbols.values())] + body + [["sheet_instances", ["path", Q("/"), ["page", Q("1")]]]]
 with open(os.path.join(HERE, PROJECT + ".kicad_sch"), "w") as f:
     f.write(dump(sch) + "\n")

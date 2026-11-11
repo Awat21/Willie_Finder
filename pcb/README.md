@@ -1,6 +1,6 @@
 # Custom tracker PCB
 
-Draft schematic (rev 0.3) and a first-pass board layout for a single-board version of the collar tracker. **Not ready for fabrication.**
+Draft schematic (rev 0.4) and a first-pass board layout for a single-board version of the collar tracker. **Not ready for fabrication.**
 
 - `willie_tracker.kicad_sch`, `willie_tracker.kicad_pro`, `sym-lib-table` - KiCad 9 project (needs KiCad 9 or newer).
 - `willie_tracker.pdf` - the same schematic as a PDF.
@@ -28,7 +28,7 @@ Draft schematic (rev 0.3) and a first-pass board layout for a single-board versi
 | Regulator | XC6220 3.3 V | Fed from VSYS (USB when plugged in, otherwise the battery) |
 | GNSS signal buffer | 74LVC3G34 on the switched rail | Isolates TX, RX and PPS when the GNSS is off |
 | Battery sense | 1M / 1.5M divider on P0.05 | Matches the RAK base boards |
-| USB | USB-C with CC resistors and USBLC6 ESD protection | Charging and firmware updates |
+| USB | GCT USB4110 USB-C (all surface-mount) with CC resistors and USBLC6 ESD protection | Charging and firmware updates |
 
 ## Review status (rev 0.3)
 
@@ -48,17 +48,21 @@ MCP73871 pin settings, checked against Microchip DS20002090E: SEL low = USB inpu
 
 | | |
 |---|---|
-| Size | 25.0 x 40.0 mm rectangle, 0.8 mm thick |
-| Layers | 4: top (parts and signals), inner 1 (solid ground plane), inner 2 (signals), bottom (small parts and signals) |
-| Top side | Every tall part: RAK4630, MAX-M10S, USB-C (on a short edge), charger, regulator, sensors, antenna socket, reset button, battery wire pads |
-| Bottom side | Only 0402 resistors, capacitors and LEDs, plus five test pads |
-| Assembled thickness | About 4.5 mm: USB-C 3.2 mm on top, board 0.8 mm, 0402 parts 0.5 mm underneath (estimate from datasheet heights) |
+| Size | 25.0 x 44.0 mm rectangle, 0.8 mm thick |
+| Assembly | Every part is surface-mount and on the top side. The bottom is bare, so the board can sit flat on a hot plate |
+| Through-holes | No plated through-hole pads. Two unplated locating holes for the USB-C connector's pegs |
+| Layers | 4: top (parts and signals), inner 1 (solid ground plane), inner 2 (signals plus a 3.3 V pour), bottom (signals plus a ground pour) |
+| Assembled thickness | About 4 mm: USB-C connector roughly 3.2 mm on a 0.8 mm board (estimate from datasheet heights) |
 | Rules | 0.2 mm tracks, 0.15 mm clearance, 0.6 / 0.3 mm vias, tented |
-| Routing | 937 track segments, 128 vias, every net connected |
-| KiCad DRC | 0 violations, 0 unconnected pads, 0 schematic parity issues (`drc_report.txt`) |
+| Routing | 933 track segments, 146 vias, every net connected |
+| KiCad DRC | 0 errors, 0 unconnected pads, 0 schematic parity issues, 1 library-sync warning on J1 (`drc_report.txt`) |
 
-The earlier 25.5 x 28 mm version had tall parts on both sides and was about 6.5 mm thick. This longer board trades
-length for thickness. C4 changed from 0603 to 0402 so it can sit under the regulator.
+Changes for single-sided assembly (schematic rev 0.4):
+
+- USB-C connector is now the GCT USB4110 (all surface-mount shell tabs) instead of a part with through-hole legs.
+- The battery leads solder to two 1.5 x 3 mm surface pads (J2 BAT+, J4 BAT-) instead of through-hole wire pads.
+- The five test pads moved to the top side.
+- Length grew from 40 to 44 mm, the top of the allowed range, to give the small parts room for their vias.
 
 The routing was done by `route.py`, a simple autorouter written for this board. It satisfies the clearance rules but
 has had no engineering review. Before fabrication:
@@ -68,12 +72,15 @@ has had no engineering review. Before fabrication:
 3. Tracks and tented vias run under the RAK4630. Check RAK's layout guidance for keep-out areas under the module.
 4. Decoupling capacitors were placed for fit, not for shortest loop to their pins. Review each one.
 5. USB D+ and D- are routed as two ordinary tracks, not a matched pair. Acceptable at full speed over this length; confirm.
-6. Only inner layer 1 has a ground pour. Add ground pours on the outer layers and stitch them.
+6. Ground is poured on inner layer 1 and the bottom; the top has no pour. The 3.3 V pour on inner layer 2 is broken up by signal tracks.
 7. The RAK4630 land pattern was drawn from the dimensions in RAK's datasheet images. Check it against a real module or RAK's own footprint before ordering.
 8. Reference designators are hidden on the silkscreen; there is no silkscreen artwork, fiducials or mounting features.
-9. USB-C sits on the top side at one short edge; the connector's exact overhang past the board edge is not checked.
-10. The battery wire pads (J2) are in the middle of the board. Move them toward an edge if that suits the case better.
-11. The render shows via rings exposed although tenting is set in the board file; confirm in the Gerbers.
+9. USB-C sits at one short edge; the connector's exact overhang past the board edge is not checked.
+10. Check that the USB4110's locating pegs do not stick out below a 0.8 mm board; if they do, the board will not sit flat on a hot plate (use a thicker board or trim the pegs).
+11. Surface-mount battery pads can peel under wire strain. Glue or otherwise strain-relieve the leads.
+12. The render shows via rings exposed although tenting is set in the board file; confirm in the Gerbers.
+13. Tracks and vias also run under the MAX-M10S; check u-blox's layout guidance for the area under the module.
+14. The J1 library-sync warning in DRC is unexplained; the pads and nets match the schematic.
 
 ## Electrical rule check
 
