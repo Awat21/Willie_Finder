@@ -48,16 +48,17 @@ MCP73871 pin settings, checked against Microchip DS20002090E: SEL low = USB inpu
 
 | | |
 |---|---|
-| Size | 25.5 x 28.0 mm, 0.8 mm thick |
-| Layers | 4: top (parts and signals), inner 1 (solid ground plane), inner 2 (signals), bottom (parts and signals) |
-| Parts | Both sides: RAK4630, USB-C, charger on top; GNSS, regulator, sensors, buffer on the bottom |
-| Assembled thickness | About 6.5 mm: USB-C 3.2 mm on top, board 0.8 mm, MAX-M10S 2.5 mm underneath (estimate from datasheet heights) |
+| Size | 25.0 x 40.0 mm rectangle, 0.8 mm thick |
+| Layers | 4: top (parts and signals), inner 1 (solid ground plane), inner 2 (signals), bottom (small parts and signals) |
+| Top side | Every tall part: RAK4630, MAX-M10S, USB-C (on a short edge), charger, regulator, sensors, antenna socket, reset button, battery wire pads |
+| Bottom side | Only 0402 resistors, capacitors and LEDs, plus five test pads |
+| Assembled thickness | About 4.5 mm: USB-C 3.2 mm on top, board 0.8 mm, 0402 parts 0.5 mm underneath (estimate from datasheet heights) |
 | Rules | 0.2 mm tracks, 0.15 mm clearance, 0.6 / 0.3 mm vias, tented |
-| Routing | 876 track segments, 106 vias, every net connected |
+| Routing | 937 track segments, 128 vias, every net connected |
 | KiCad DRC | 0 violations, 0 unconnected pads, 0 schematic parity issues (`drc_report.txt`) |
 
-Both sides are populated because one side cannot hold everything in less area than the RAK19003 base board
-(30 x 35 mm). This board is about 37% smaller in area than that, not the 22 x 26 mm single-sided board first estimated.
+The earlier 25.5 x 28 mm version had tall parts on both sides and was about 6.5 mm thick. This longer board trades
+length for thickness. C4 changed from 0603 to 0402 so it can sit under the regulator.
 
 The routing was done by `route.py`, a simple autorouter written for this board. It satisfies the clearance rules but
 has had no engineering review. Before fabrication:
@@ -70,7 +71,9 @@ has had no engineering review. Before fabrication:
 6. Only inner layer 1 has a ground pour. Add ground pours on the outer layers and stitch them.
 7. The RAK4630 land pattern was drawn from the dimensions in RAK's datasheet images. Check it against a real module or RAK's own footprint before ordering.
 8. Reference designators are hidden on the silkscreen; there is no silkscreen artwork, fiducials or mounting features.
-9. USB-C sits on the top side at the right-hand short edge; the connector's exact overhang past the board edge is not checked.
+9. USB-C sits on the top side at one short edge; the connector's exact overhang past the board edge is not checked.
+10. The battery wire pads (J2) are in the middle of the board. Move them toward an edge if that suits the case better.
+11. The render shows via rings exposed although tenting is set in the board file; confirm in the Gerbers.
 
 ## Electrical rule check
 

@@ -1,7 +1,7 @@
 (export (version "E")
   (design
     (source "/home/user/Willie_Finder/pcb/willie_tracker.kicad_sch")
-    (date "2026-11-11T21:10:59+0000")
+    (date "2026-11-11T21:26:47+0000")
     (tool "Eeschema 9.0.9-9.0.9~ubuntu24.04.1")
     (sheet (number "1") (name "/") (tstamps "/")
       (title_block
@@ -67,10 +67,10 @@
       (tstamps "608d9bcd-d367-5a9e-93d8-a64be6e8b992"))
     (comp (ref "C4")
       (value "4.7uF")
-      (footprint "Capacitor_SMD:C_0603_1608Metric")
+      (footprint "Capacitor_SMD:C_0402_1005Metric")
       (datasheet "~")
       (fields
-        (field (name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
+        (field (name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
         (field (name "Datasheet") "~")
         (field (name "Description")))
       (libsource (lib "Device") (part "C") (description "Unpolarized capacitor"))

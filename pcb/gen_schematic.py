@@ -121,7 +121,7 @@ PARTS = [
     ("U3", "Regulator_Linear", "XC6220B331MR", "XC6220B331MR", None, (215.9, 60.96),
      {"1": "VSYS", "3": "VSYS", "2": "GND", "5": "+3V3", "4": NC}),
     ("C3", "Device", "C", "10uF", FP_C6, (193.04, 68.58), two("VSYS", "GND")),
-    ("C4", "Device", "C", "4.7uF", FP_C6, (238.76, 68.58), two("+3V3", "GND")),
+    ("C4", "Device", "C", "4.7uF", FP_C, (238.76, 68.58), two("+3V3", "GND")),
     ("R5", "Device", "R", "1M", FP_R, (261.62, 58.42), two("+BATT", "VBAT_SENSE")),
     ("R6", "Device", "R", "1.5M", FP_R, (261.62, 81.28), two("VBAT_SENSE", "GND")),
     ("C5", "Device", "C", "100nF", FP_C, (276.86, 81.28), two("VBAT_SENSE", "GND")),

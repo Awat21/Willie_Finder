@@ -14,33 +14,42 @@ sys.path.insert(0, HERE)
 import sexpr  # noqa: E402
 
 MM = pcbnew.FromMM
-BOARD_W, BOARD_H = 25.5, 28.0
+BOARD_W, BOARD_H = 25.0, 40.0
 T, B = "F", "B"
 
 # ref: (x, y, rotation, side)   board origin = top-left corner, mm
+# Tall parts are all on the top side; the bottom carries only 0402 parts and test pads, to keep the board thin.
 PLACE = {
-    # ---- top: module, USB, charger
-    "U1": (12.75, 8.82, 0, T),
-    "J1": (21.3, 22.6, 90, T),
-    "U2": (4.0, 21.2, 0, T),
-    "C1": (9.4, 18.3, 0, T), "C3": (9.4, 20.0, 0, T), "C2": (9.4, 21.7, 0, T),
-    "R1": (13.3, 18.6, 90, T), "R2": (14.6, 18.6, 90, T),
-    "R3": (1.4, 25.7, 0, T), "R14": (3.6, 25.7, 0, T), "R15": (5.8, 25.7, 0, T),
-    "R4": (1.4, 27.25, 0, T), "D1": (3.6, 27.25, 0, T), "D2": (10.5, 27.1, 0, T), "R10": (13.6, 27.1, 0, T),
-    # ---- bottom: GNSS, regulator, sensors
-    "U6": (7.2, 7.2, 0, B),
-    "J3": (16.4, 3.4, 0, B),
-    "U4": (16.6, 9.0, 90, B), "C9": (15.0, 12.6, 0, B), "C10": (17.4, 12.6, 0, B), "R7": (19.8, 9.0, 90, B),
-    "U8": (5.6, 14.7, 0, B), "C12": (9.6, 14.1, 0, B), "R11": (9.6, 15.6, 0, B), "R12": (12.0, 15.6, 0, B),
-    "U7": (22.2, 12.4, 0, B), "C11": (22.2, 15.2, 0, B), "R8": (22.4, 8.8, 0, B), "R9": (22.4, 7.2, 0, B),
-    "C6": (22.6, 2.2, 0, B), "C7": (22.9, 4.0, 0, B), "C8": (1.6, 14.2, 0, B),
-    "U3": (4.4, 18.4, 0, B), "C4": (8.6, 18.6, 0, B),
-    "R5": (12.2, 17.2, 0, B), "R6": (12.2, 18.4, 0, B), "C5": (12.2, 19.6, 0, B),
-    "U5": (20.6, 22.6, 90, B),
-    "SW1": (15.7, 23.0, 90, B),
-    "J2": (8.4, 24.2, 0, B),            # through-hole wire pads: keep both sides clear
-    "TP1": (5.0, 26.75, 0, B), "TP2": (7.2, 26.75, 0, B), "TP3": (9.4, 26.75, 0, B), "TP4": (11.6, 26.75, 0, B),
-    "TP5": (13.8, 26.75, 0, B),
+    # ---- top
+    "U1": (12.5, 8.6, 0, T),
+    "C6": (22.4, 17.7, 0, T),
+    "U6": (6.6, 23.2, 0, T),
+    "U8": (15.4, 19.6, 0, T),
+    "J2": (14.2, 22.4, 0, T),             # through-hole battery wire pads
+    "J3": (15.3, 26.5, 0, T),
+    "U7": (21.8, 20.6, 0, T),
+    "U4": (21.4, 25.6, 0, T),
+    "U3": (21.4, 29.8, 0, T),
+    "C2": (8.0, 29.6, 0, T), "C3": (11.2, 29.6, 0, T),
+    "J1": (12.5, 35.8, 0, T),
+    "U2": (3.6, 33.0, 0, T),
+    "SW1": (3.6, 38.0, 0, T),
+    "C1": (21.4, 33.0, 0, T),
+    "U5": (21.4, 37.4, 0, T),
+    # ---- bottom: 0402 parts and test pads
+    "C7": (22.6, 3.9, 0, B), "C8": (2.4, 11.6, 0, B),
+    "TP1": (6.0, 6.0, 0, B), "TP2": (8.5, 6.0, 0, B), "TP3": (11.0, 6.0, 0, B), "TP4": (13.5, 6.0, 0, B),
+    "TP5": (16.0, 6.0, 0, B),
+    "D2": (14.0, 12.0, 0, B), "R10": (16.2, 12.0, 0, B),
+    "R11": (12.0, 18.4, 0, B), "C12": (15.4, 19.6, 0, B), "R12": (18.6, 18.4, 0, B),
+    "C11": (21.8, 20.6, 0, B), "R8": (21.0, 23.0, 0, B), "R9": (23.2, 23.0, 0, B),
+    "C9": (6.6, 22.0, 0, B), "C10": (6.6, 24.4, 0, B),
+    "R7": (21.4, 25.6, 0, B),
+    "C4": (21.4, 28.8, 0, B),
+    "R3": (1.6, 29.4, 0, B), "R14": (3.8, 29.4, 0, B), "R15": (6.0, 29.4, 0, B),
+    "R1": (9.6, 29.2, 0, B), "R2": (15.4, 29.2, 0, B),
+    "R5": (19.0, 33.0, 0, B), "R6": (21.2, 33.0, 0, B), "C5": (23.4, 33.0, 0, B),
+    "R4": (1.6, 37.2, 0, B), "D1": (3.8, 37.2, 0, B),
 }
 POS_OVERRIDE = {}
 
@@ -148,6 +157,14 @@ def report(board):
             fb, bx1, by1, bx2, by2 = boxes[b]
             if fa == fb and min(ax2, bx2) - max(ax1, bx1) > 0.01 and min(ay2, by2) - max(ay1, by1) > 0.01:
                 print("OVERLAP %s %s  %.2f x %.2f" % (a, b, min(ax2, bx2) - max(ax1, bx1), min(ay2, by2) - max(ay1, by1)))
+    for fp in board.GetFootprints():          # through-hole pads occupy both sides
+        for pad in fp.Pads():
+            if pad.GetAttribute() in (pcbnew.PAD_ATTRIB_PTH, pcbnew.PAD_ATTRIB_NPTH):
+                pb = pad.GetBoundingBox()
+                px1, py1, px2, py2 = tm(pb.GetLeft()), tm(pb.GetTop()), tm(pb.GetRight()), tm(pb.GetBottom())
+                for r2, (f2, x1, y1, x2, y2) in boxes.items():
+                    if r2 != fp.GetReference() and min(px2, x2) - max(px1, x1) > 0 and min(py2, y2) - max(py1, y1) > 0:
+                        print("THROUGH-HOLE %s.%s under/over %s" % (fp.GetReference(), pad.GetNumber(), r2))
     return boxes
 
 
@@ -155,12 +172,12 @@ if __name__ == "__main__":
     board, nets = build()
     boxes = report(board)
     if "-v" in sys.argv:
-        for r in ("J1", "U6", "J3", "U2"):
+        for r in ("J1", "U6", "J3", "U2", "J2"):
             print(r, ["%.2f" % v for v in boxes[r][1:]])
         for fp in board.GetFootprints():
-            if fp.GetReference() in ("U6", "J1", "U1"):
+            if fp.GetReference() in ("U6", "J1", "U1", "J3"):
                 for pad in fp.Pads():
-                    if (fp.GetReference(), pad.GetNumber()) in (("U6", "11"), ("U6", "1"), ("J1", "A4"), ("J1", "A1"), ("U1", "1"), ("U1", "20"), ("U1", "43"), ("U1", "6")):
+                    if (fp.GetReference(), pad.GetNumber()) in (("U6", "11"), ("U6", "2"), ("U6", "8"), ("J1", "A4"), ("J1", "S1"), ("J3", "1"), ("U1", "1")):
                         print(fp.GetReference(), pad.GetNumber(), "%.2f %.2f" % (pcbnew.ToMM(pad.GetPosition().x), pcbnew.ToMM(pad.GetPosition().y)))
     out = os.path.join(HERE, "willie_tracker.kicad_pcb")
     print("saving", flush=True)
